@@ -1,2 +1,3 @@
 # Fencing-Box---RGB-display
 Adaptation of https://github.com/wnew/fencing_scoring_box with RGB lights
+![Diagram](/sparpo/Fencing-Box---RGB-display/FLHHYBEIHI1K7DY.png?raw=true "Circuit Diagram")
