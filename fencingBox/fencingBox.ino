@@ -32,32 +32,26 @@
 //============
 // Pin Setup
 //============
-/*
-  const uint8_t shortLEDA  =  8;    // Short Circuit A Light
-  const uint8_t onTargetA  =  9;    // On Target A Light
-  const uint8_t offTargetA = 10;    // Off Target A Light
-  const uint8_t offTargetB = 11;    // Off Target B Light
-  const uint8_t onTargetB  = 12;    // On Target B Light
-  const uint8_t shortLEDB  = 13;    // Short Circuit A Light
-*/
-const uint8_t rA = 3;
-const uint8_t gA = 5;
-const uint8_t bA = 6;
-const uint8_t rB = 9;
-const uint8_t gB = 10;
-const uint8_t bB = 11;
 
+const uint8_t rB = 3;
+const uint8_t gB = 5;
+const uint8_t bB = 6;
+const uint8_t rA = 9;
+const uint8_t gA = 10;
+const uint8_t bA = 11;
 
-const uint8_t weaponPinA = A0;    // Weapon A pin - Analog
-const uint8_t lamePinA   = A1;    // Lame   A pin - Analog (Epee return path)
+const uint8_t lamePinA   = A0;    // Lame   A pin - Analog (Epee return path)
+const uint8_t weaponPinA = A1;    // Weapon A pin - Analog
 const uint8_t groundPinA = A2;    // Ground A pin - Analog
-const uint8_t weaponPinB = A3;    // Weapon B pin - Analog
-const uint8_t lamePinB   = A4;    // Lame   B pin - Analog (Epee return path)
+
+const uint8_t lamePinB   = A3;    // Lame   B pin - Analog (Epee return path)
+const uint8_t weaponPinB = A4;    // Weapon B pin - Analog
 const uint8_t groundPinB = A5;    // Ground B pin - Analog
 
-const uint8_t modePin    =  2;        // Mode change button interrupt pin 0 (digital pin 2)
 const uint8_t buzzerPin  =  7;        // buzzer pin
 const uint8_t soundPin   =  12;       // Pin turns sound on or off
+
+const uint8_t modePin    =  2;        // Mode change button interrupt pin 0 (digital pin 2)
 const uint8_t modeLeds[] = {4, 5, 6}; // LED pins to indicate weapon mode selected {f e s}
 
 const uint8_t bleedPin = 13;     // Current bleeder resistor pin. Only needed if using phone power bank as power source.
@@ -143,15 +137,6 @@ void setup() {
   pinMode(modeLeds[2], OUTPUT);
 
   // set the light pins to outputs
-  /*
-    pinMode(offTargetA, OUTPUT);
-    pinMode(offTargetB, OUTPUT);
-    pinMode(onTargetA,  OUTPUT);
-    pinMode(onTargetB,  OUTPUT);
-    pinMode(shortLEDA,  OUTPUT);
-    pinMode(shortLEDB,  OUTPUT);
-    pinMode(buzzerPin,  OUTPUT);
-  */
 
   pinMode(bleedPin, OUTPUT);
   pinMode(rA, OUTPUT);
@@ -176,62 +161,9 @@ void setup() {
   Serial.println("====================");
   Serial.print  ("Mode : ");
   Serial.println(currentMode);
-  /*
-    digitalWrite(offTargetA, HIGH);
-    delay(200);
-    digitalWrite(onTargetA, HIGH);
-    delay(200);
-    digitalWrite(onTargetB, HIGH);
-    delay(200);
-    digitalWrite(offTargetB, HIGH);
-    delay(200);
-  */
-  /*
-    analogWrite(bA, 50);
-    delay(150);
-    analogWrite(rB, 100);
-    delay(150);
-    analogWrite(gA, 150);
-    delay(150);
-    analogWrite(rA, 200);
-    delay(150);
-    analogWrite(bB, 250);
-    delay(150);
-    analogWrite(gB, 255);
-    delay(150);*/
-  int d = 2;
-  for (int i = 0; i < 255; i++) {
-    analogWrite(rA, i);
-    analogWrite(gA, i / 2);
-    analogWrite(bA, 128 - i / 2);
 
-    analogWrite(rB, i);
-    analogWrite(gB, 0);
-    analogWrite(bB, 128);
-    delay(d);
-  }
+  startUpAnimation();
 
-  for (int i = 0; i < 255; i++) {
-    analogWrite(rA, 255 - i);
-    analogWrite(gA, 128);
-    analogWrite(bA, i / 2);
-
-    analogWrite(rB, 255);
-    analogWrite(gB, i / 2);
-    analogWrite(bB, 128 - i / 2);
-    delay(d);
-  }
-
-  for (int i = 0; i < 255; i++) {
-    analogWrite(rA, i);
-    analogWrite(gA, 128 - i / 2);
-    analogWrite(bA, 128 - i / 2);
-
-    analogWrite(rB, 255 - i);
-    analogWrite(gB, 128);
-    analogWrite(bB, 0);
-    delay(d);
-  }
   resetValues();
 }
 
@@ -277,11 +209,14 @@ void loop() {
     weaponB = analogRead(weaponPinB);
     lameA   = analogRead(lamePinA);
     lameB   = analogRead(lamePinB);
+    groundA   = analogRead(groundPinA);
+    groundB   = analogRead(groundPinB);
     soundEn = digitalRead(soundPin);
-    //String outputs = String("Data: ") + weaponA + "," + weaponB + "," + lameA + "," + lameB;
-    //Serial.println(outputs);
+#ifdef DEBUG
+    String outputs = String("Data: ") + weaponA + "," + weaponB + "," + lameA + "," + lameB +"," + groundA + "," + groundB;
+    Serial.println(outputs);
     
-    
+#endif
     
     signalHits();
     if      (currentMode == FOIL_MODE)
@@ -307,15 +242,20 @@ void loop() {
   }
 }
 
-void bleedResistor() { // For 1 second out of every 7, bleedPin goes high. This stops power bank from turning off.
+
+//=====================
+// Bleed Pin
+//=====================
+void bleedResistor() {  //Needed for power banks. Stops them from shutting down.
   long now = millis();
-  if (now > (bleedTime + 6000) && now < (bleedTime + 7000)) {
+  if (now > (bleedTime + 5000) && now < (bleedTime + 6000)) { // For 1 second out of every 6, bleedPin goes high. This stops power bank from turning off.
     digitalWrite(bleedPin, HIGH);
   } else if (now > (bleedTime + 7000)) {
     digitalWrite(bleedPin, LOW);
     bleedTime = millis();
   }
 }
+
 //=====================
 // Mode pin interrupt
 //=====================
@@ -519,7 +459,7 @@ void sabre() {
   // weapon A
   if (hitOnTargA == false && hitOffTargA == false) { // ignore if A has already hit
     // on target
-    if (400 < weaponA && weaponA < 600 && 400 < lameB && lameB < 600) {
+    if (weaponA < 600 &&  200 < lameB) {
       if (!depressedA) {
         depressAtime = micros();
         depressedA   = true;
@@ -538,7 +478,7 @@ void sabre() {
   // weapon B
   if (hitOnTargB == false && hitOffTargB == false) { // ignore if B has already hit
     // on target
-    if (400 < weaponB && weaponB < 600 && 400 < lameA && lameA < 600) {
+    if ( weaponB < 600 && 200 < lameA) {
       if (!depressedB) {
         depressBtime = micros();
         depressedB   = true;
@@ -562,21 +502,8 @@ void sabre() {
 void signalHits() {
   // non time critical, this is run after a hit has been detected
   if (lockedOut) {
-    /*digitalWrite(onTargetA,  hitOnTargA);
-      digitalWrite(offTargetA, hitOffTargA);
-      digitalWrite(offTargetB, hitOffTargB);
-      digitalWrite(onTargetB,  hitOnTargB);
-    *//*
-  analogWrite(gA, G * hitOnTargA);
-  analogWrite(rA, R * hitOffTargA);
-  analogWrite(gA, G * hitOffTargA);
-  analogWrite(bA, B * hitOffTargA);
 
-  analogWrite(rB, R * hitOffTargA);
-  analogWrite(gB, G * hitOffTargA);
-  analogWrite(bB, B * hitOffTargA);
-  analogWrite(rB, R * hitOnTargA);*/
-    if(!soundEn) { //if sound enabled
+    if(soundEn) { //if sound enabled
       digitalWrite(buzzerPin,  HIGH);
     }
     
@@ -600,8 +527,6 @@ void signalHits() {
       analogWrite(gB, G);
       analogWrite(bB, 0);
     }
-
-
 
     
 #ifdef DEBUG
@@ -662,11 +587,50 @@ void testLights() {
     digitalWrite(shortLEDA,  HIGH);
     digitalWrite(shortLEDB,  HIGH);*/
   analogWrite(rA, R);
-  analogWrite(gA , G);
+  analogWrite(gA, G);
   analogWrite(bA, B);
   analogWrite(rB, R);
   analogWrite(gB, G);
   analogWrite(bB, B);
   delay(1000);
   resetValues();
+}
+
+//====================
+// Start up animation
+//====================
+void startUpAnimation() {
+  int d = 2;
+  for (int i = 0; i < 255; i++) {
+    analogWrite(rA, i);
+    analogWrite(gA, i / 2);
+    analogWrite(bA, 128 - i / 2);
+
+    analogWrite(rB, i);
+    analogWrite(gB, 0);
+    analogWrite(bB, 128);
+    delay(d);
+  }
+
+  for (int i = 0; i < 255; i++) {
+    analogWrite(rA, 255 - i);
+    analogWrite(gA, 128);
+    analogWrite(bA, i / 2);
+
+    analogWrite(rB, 255);
+    analogWrite(gB, i / 2);
+    analogWrite(bB, 128 - i / 2);
+    delay(d);
+  }
+
+  for (int i = 0; i < 255; i++) {
+    analogWrite(rA, i);
+    analogWrite(gA, 128 - i / 2);
+    analogWrite(bA, 128 - i / 2);
+
+    analogWrite(rB, 255 - i);
+    analogWrite(gB, 128);
+    analogWrite(bB, 0);
+    delay(d);
+  }
 }
