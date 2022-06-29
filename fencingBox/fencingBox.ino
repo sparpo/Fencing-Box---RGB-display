@@ -18,7 +18,7 @@
 // #defines
 //============
 //TODO: set up debug levels correctly
-#define DEBUG 0
+//#define DEBUG 0
 //#define TEST_LIGHTS       // turns on lights for a second on start up
 //#define TEST_ADC_SPEED    // used to test sample rate of ADCs
 //#define REPORT_TIMING     // prints timings over serial interface
@@ -152,9 +152,9 @@ void setup() {
 #ifdef TEST_LIGHTS
   testLights();
 #endif
-  //testLights();
+  
   // this optimises the ADC to make the sampling rate quicker
-  //adcOpt();
+  adcOpt();
 
   Serial.begin(BAUDRATE);
   Serial.println("3 Weapon Scoring Box");
@@ -213,7 +213,7 @@ void loop() {
     groundB   = analogRead(groundPinB);
     soundEn = digitalRead(soundPin);
 #ifdef DEBUG
-    String outputs = String("Data: ") + weaponA + "," + weaponB + "," + lameA + "," + lameB +"," + groundA + "," + groundB;
+    String outputs = String("Data: ") + weaponA  + "," + lameA + "," + groundA + "," + weaponB + "," + lameB + "," + groundB;
     Serial.println(outputs);
     
 #endif
@@ -330,7 +330,7 @@ void foil() {
   if (hitOnTargA == false && hitOffTargA == false) { // ignore if A has already hit
     // off target
 
-    if (900 < weaponA && lameB < 100) {
+    if (550 < weaponA && lameB < 50) {
       //Serial.println("yes");
       if (!depressedA) {
         depressAtime = micros();
@@ -342,7 +342,7 @@ void foil() {
       }
     } else {
       // on target
-      if (400 < weaponA && weaponA < 600 && 400 < lameB && lameB < 600) {
+      if (450 < weaponA && weaponA < 550 && 450 < lameB && lameB < 550) {
         if (!depressedA) {
           depressAtime = micros();
           depressedA   = true;
@@ -362,7 +362,7 @@ void foil() {
   // weapon B
   if (hitOnTargB == false && hitOffTargB == false) { // ignore if B has already hit
     // off target
-    if (900 < weaponB && lameA < 100) {
+    if (550 < weaponB && lameA < 50) {
       if (!depressedB) {
         depressBtime = micros();
         depressedB   = true;
@@ -373,7 +373,7 @@ void foil() {
       }
     } else {
       // on target
-      if (400 < weaponB && weaponB < 600 && 400 < lameA && lameA < 600) {
+      if (450 < weaponB && weaponB < 550 && 450 < lameA && lameA < 550) {
         if (!depressedB) {
           depressBtime = micros();
           depressedB   = true;
@@ -400,11 +400,12 @@ void epee() {
   if ((hitOnTargA && (depressAtime + lockout[1] < now)) || (hitOnTargB && (depressBtime + lockout[1] < now))) {
     lockedOut = true;
   }
-
+  
   // weapon A
   //  no hit for A yet    && weapon depress    && opponent lame touched
   if (hitOnTargA == false) {
-    if (400 < weaponA && weaponA < 600 && 400 < lameA && lameA < 600) {
+    if (450 < weaponA && weaponA < 550 && 450 < lameA && lameA < 550) {
+      
       if (!depressedA) {
         depressAtime = micros();
         depressedA   = true;
@@ -413,6 +414,11 @@ void epee() {
           hitOnTargA = true;
         }
       }
+      
+      #ifdef REPORT_TIMING  //check if timing is correct
+        Serial.println(micros() - depressAtime);
+      #endif
+      
     } else {
       // reset these values if the depress time is short.
       if (depressedA == true) {
@@ -425,7 +431,7 @@ void epee() {
   // weapon B
   //  no hit for B yet    && weapon depress    && opponent lame touched
   if (hitOnTargB == false) {
-    if (400 < weaponB && weaponB < 600 && 400 < lameB && lameB < 600) {
+    if (450 < weaponB && weaponB < 550 && 450 < lameB && lameB < 550) {
       if (!depressedB) {
         depressBtime = micros();
         depressedB   = true;
@@ -434,6 +440,11 @@ void epee() {
           hitOnTargB = true;
         }
       }
+      
+      #ifdef REPORT_TIMING //check if timing is correct
+        Serial.println(micros() - depressBtime);
+      #endif
+      
     } else {
       // reset these values if the depress time is short.
       if (depressedB == true) {
@@ -459,7 +470,7 @@ void sabre() {
   // weapon A
   if (hitOnTargA == false && hitOffTargA == false) { // ignore if A has already hit
     // on target
-    if (weaponA < 600 &&  200 < lameB) {
+    if (weaponA < 450 &&  50 < lameB) {
       if (!depressedA) {
         depressAtime = micros();
         depressedA   = true;
@@ -468,6 +479,11 @@ void sabre() {
           hitOnTargA = true;
         }
       }
+            
+      #ifdef REPORT_TIMING  //check if timing is correct
+        Serial.println(micros() - depressAtime);
+      #endif
+      
     } else {
       // reset these values if the depress time is short.
       depressAtime = 0;
@@ -478,10 +494,15 @@ void sabre() {
   // weapon B
   if (hitOnTargB == false && hitOffTargB == false) { // ignore if B has already hit
     // on target
-    if ( weaponB < 600 && 200 < lameA) {
+    if ( weaponB < 450 && 50 < lameA) {
       if (!depressedB) {
         depressBtime = micros();
         depressedB   = true;
+              
+      #ifdef REPORT_TIMING  //check if timing is correct
+        Serial.println(micros() - depressBtime);
+      #endif
+      
       } else {
         if (depressBtime + depress[2] <= micros()) {
           hitOnTargB = true;
