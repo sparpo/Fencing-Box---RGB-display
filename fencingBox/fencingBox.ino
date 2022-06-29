@@ -1,18 +1,18 @@
-//===========================================================================//
-//                                                                           //
-//  Desc:    Arduino Code to implement a fencing scoring apparatus           //
-//  Dev:     Wnew                                                            //
-//  Date:    Nov  2012                                                       //
-//  Updated: Sept 2015                                                       //
-//  Notes:   1. Basis of algorithm from digitalwestie on github. Thanks Mate //
-//           2. Used uint8_t instead of int where possible to optimise       //
-//           3. Set ADC prescaler to 16 faster ADC reads                     //
-//                                                                           //
-//  To do:   1. Could use shift reg on lights and mode LEDs to save pins     //
-//           2. Implement short circuit LEDs (already provision for it)      //
-//           3. Set up debug levels correctly                                //
-//                                                                           //
-//===========================================================================//
+//==================================================================================//
+//                                                                                  //
+//  Desc:    Arduino Code to implement a fencing scoring apparatus                  //
+//  Dev:     Sparpo                                                                 //
+//  Date:    Nov  2012                                                              //
+//  Updated: Sept 2022                                                              //
+//  Notes:   1. Basis of algorithm from digitalwestie & Wnew on github. Thanks guys //
+//           2. Used uint8_t instead of int where possible to optimise              //
+//           3. Set ADC prescaler to 16 faster ADC reads                            //
+//                                                                                  //
+//  To do:   1. Could use shift reg on lights and mode LEDs to save pins            //
+//           2. Implement short circuit LEDs (already provision for it)             //
+//           3. Set up debug levels correctly                                       //
+//                                                                                  //
+//==================================================================================//
 
 //============
 // #defines
